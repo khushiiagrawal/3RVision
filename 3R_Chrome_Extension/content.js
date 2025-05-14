@@ -811,6 +811,173 @@ function extractMaterialInfo(text) {
   // Normalize text: lowercase, remove extra spaces
   const normalizedText = text.toLowerCase().replace(/\s+/g, " ");
 
+  // List of common irrelevant words to filter out
+  const irrelevantWords = [
+    "let us know",
+    "please",
+    "thank you",
+    "click here",
+    "learn more",
+    "read more",
+    "view details",
+    "check out",
+    "see more",
+    "buy now",
+    "add to cart",
+    "order now",
+    "shop now",
+    "get it now",
+    "find out more",
+    "discover",
+    "explore",
+    "browse",
+    "search",
+    "filter",
+    "sort",
+    "compare",
+    "review",
+    "rating",
+    "price",
+    "discount",
+    "sale",
+    "offer",
+    "deal",
+    "free shipping",
+    "shipping",
+    "delivery",
+    "returns",
+    "warranty",
+    "guarantee",
+    "specifications",
+    "features",
+    "benefits",
+    "advantages",
+    "highlights",
+    "details",
+    "description",
+    "product",
+    "item",
+    "package",
+    "box",
+    "container",
+    "bag",
+    "case",
+    "set",
+    "kit",
+    "bundle",
+    "collection",
+    "series",
+    "line",
+    "brand",
+    "model",
+    "type",
+    "style",
+    "design",
+    "pattern",
+    "color",
+    "size",
+    "dimensions",
+    "weight",
+    "capacity",
+    "volume",
+    "quantity",
+    "number",
+    "count",
+    "piece",
+    "unit",
+    "pair",
+    "dozen",
+    "pack",
+    "box",
+    "carton",
+    "pallet",
+    "lot",
+    "batch",
+    "order",
+    "shipment",
+    "delivery",
+    "return",
+    "refund",
+    "exchange",
+    "warranty",
+    "guarantee",
+    "certification",
+    "standard",
+    "regulation",
+    "compliance",
+    "safety",
+    "quality",
+    "grade",
+    "class",
+    "category",
+    "type",
+    "kind",
+    "sort",
+    "variety",
+    "selection",
+    "range",
+    "assortment",
+    "collection",
+    "set",
+    "group",
+    "family",
+    "series",
+    "line",
+    "brand",
+    "make",
+    "model",
+    "version",
+    "edition",
+    "release",
+    "update",
+    "upgrade",
+    "improvement",
+    "enhancement",
+    "modification",
+    "change",
+    "adjustment",
+    "alteration",
+    "revision",
+    "correction",
+    "fix",
+    "patch",
+    "update",
+    "upgrade",
+    "improvement",
+    "enhancement",
+    "modification",
+    "change",
+    "adjustment",
+    "alteration",
+    "revision",
+    "correction",
+    "fix",
+    "patch"
+  ];
+
+  // Function to check if a material is valid
+  function isValidMaterial(material) {
+    // Check if material is in our database
+    const isKnownMaterial = isRecognizedMaterial(material, materialConfig);
+    
+    // Check if material contains any irrelevant words
+    const containsIrrelevantWord = irrelevantWords.some(word => 
+      material.toLowerCase().includes(word.toLowerCase())
+    );
+    
+    // Check if material is too short (likely not a real material)
+    const isTooShort = material.length < 3;
+    
+    // Check if material is just a number or percentage
+    const isJustNumber = /^\d+%?$/.test(material);
+    
+    // Check if material is just a common word that's not a material
+    const commonNonMaterials = ["the", "and", "or", "but", "for", "with", "from", "to", "in", "on", "at", "by"];
+    const isCommonWord = commonNonMaterials.includes(material.toLowerCase());
+    
+    return isKnownMaterial && !containsIrrelevantWord && !isTooShort && !isJustNumber && !isCommonWord;
+  }
+
   // Expanded patterns for material information
   const patterns = [
     // Pattern for percentage followed by material
@@ -872,22 +1039,18 @@ function extractMaterialInfo(text) {
       // Standardize variations
       material = standardizeMaterialName(material, normalizedText);
 
-      // Add to materials if valid and not duplicate
-      if (
-        material &&
-        !materialInfo.materials.some(
-          (m) => m.toLowerCase() === material.toLowerCase()
-        )
-      ) {
-        // Check if material is known
-        const isKnownMaterial = isRecognizedMaterial(material, materialConfig);
-
-        if (isKnownMaterial) {
-          console.log(`Found material: ${material}, Percentage: ${percentage}`);
-          materialInfo.materials.push(material);
+      // Split material into words and only keep recognized materials
+      const materialWords = material.split(/\s+/);
+      materialWords.forEach((word) => {
+        if (
+          word &&
+          isRecognizedMaterial(word, materialConfig) &&
+          !materialInfo.materials.some((m) => m.toLowerCase() === word.toLowerCase())
+        ) {
+          materialInfo.materials.push(word);
           materialInfo.percentages.push(percentage);
         }
-      }
+      });
     }
   });
 
@@ -898,6 +1061,24 @@ function extractMaterialInfo(text) {
   if (materialInfo.materials.length === 0) {
     checkForKnownMaterials(materialInfo, normalizedText, materialConfig);
   }
+
+  // Final validation pass to remove any remaining invalid materials
+  const validMaterials = [];
+  const validPercentages = [];
+  
+  materialInfo.materials.forEach((material, index) => {
+    // Only keep materials that are explicitly in ecoFriendlyMaterials or nonEcoFriendlyMaterials
+    if (
+      materialConfig.ecoFriendlyMaterials.hasOwnProperty(material.toLowerCase()) ||
+      materialConfig.nonEcoFriendlyMaterials.hasOwnProperty(material.toLowerCase())
+    ) {
+      validMaterials.push(material);
+      validPercentages.push(materialInfo.percentages[index]);
+    }
+  });
+  
+  materialInfo.materials = validMaterials;
+  materialInfo.percentages = validPercentages;
 
   console.log("Extracted Material Info:", materialInfo);
   return materialInfo;
@@ -933,16 +1114,21 @@ function standardizeMaterialName(material, fullText) {
 function isRecognizedMaterial(materialName, config) {
   const lowerMaterial = materialName.toLowerCase();
 
+  // Helper to check for whole word match
+  function hasWholeWord(text, word) {
+    return new RegExp(`\\b${word.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}\\b`, 'i').test(text);
+  }
+
   // Check eco-friendly materials
   for (const ecoMaterial of Object.keys(config.ecoFriendlyMaterials)) {
-    if (lowerMaterial.includes(ecoMaterial.toLowerCase())) {
+    if (hasWholeWord(lowerMaterial, ecoMaterial.toLowerCase())) {
       return true;
     }
   }
 
   // Check non-eco-friendly materials
   for (const nonEcoMaterial of Object.keys(config.nonEcoFriendlyMaterials)) {
-    if (lowerMaterial.includes(nonEcoMaterial.toLowerCase())) {
+    if (hasWholeWord(lowerMaterial, nonEcoMaterial.toLowerCase())) {
       return true;
     }
   }
@@ -959,7 +1145,7 @@ function isRecognizedMaterial(materialName, config) {
     "metal",
     "paper",
   ];
-  return generalCategories.some((category) => lowerMaterial.includes(category));
+  return generalCategories.some((category) => hasWholeWord(lowerMaterial, category));
 }
 
 // Add materials based on contextual analysis
@@ -1027,6 +1213,23 @@ function calculateEcoScore(materialInfo) {
   let totalMaterials = 0;
   let ecoClaimsBonus = 0;
 
+  // Only use real materials for scoring
+  const realMaterials = materialInfo.materials
+    .map((material, index) => ({
+      material,
+      percentage: materialInfo.percentages[index] || 100,
+    }))
+    .filter(({ material }) =>
+      materialConfig.ecoFriendlyMaterials.hasOwnProperty(material.toLowerCase()) ||
+      materialConfig.nonEcoFriendlyMaterials.hasOwnProperty(material.toLowerCase())
+    );
+
+  // If no real materials, fallback to all
+  const materialsToScore = realMaterials.length > 0 ? realMaterials : materialInfo.materials.map((material, index) => ({
+    material,
+    percentage: materialInfo.percentages[index] || 100,
+  }));
+
   // Check for eco-claims for bonus points
   materialInfo.materials.forEach((material) => {
     if (
@@ -1038,8 +1241,7 @@ function calculateEcoScore(materialInfo) {
     }
   });
 
-  materialInfo.materials.forEach((material, index) => {
-    const percentage = materialInfo.percentages[index] || 100;
+  materialsToScore.forEach(({ material, percentage }) => {
     let materialData = null;
     let materialScore = 0;
     let isRecyclable = false;
@@ -1047,7 +1249,6 @@ function calculateEcoScore(materialInfo) {
     const lowerMaterial = material.toLowerCase();
 
     // Enhanced classification with more specificity
-
     // Check eco-friendly materials first
     for (const [ecoMaterial, data] of Object.entries(
       materialConfig.ecoFriendlyMaterials
@@ -1062,7 +1263,10 @@ function calculateEcoScore(materialInfo) {
         if (lowerMaterial.includes("cotton")) {
           isBiodegradable = true;
         }
-
+        // Special case for wood - always biodegradable
+        if (lowerMaterial.includes("wood")) {
+          isBiodegradable = true;
+        }
         break;
       }
     }
@@ -1083,7 +1287,6 @@ function calculateEcoScore(materialInfo) {
     }
 
     // Special cases and refinements
-
     // Natural materials are almost always biodegradable
     if (!materialData && isNaturalMaterial(lowerMaterial)) {
       materialScore = 0.9;
@@ -1214,12 +1417,8 @@ function createShowButton(product) {
 // Modify createMaterialInfoDisplay to include a close button
 function createMaterialInfoDisplay(materialInfo, ecoScore) {
   const isEcoFriendly = ecoScore >= materialConfig.minEcoScore;
-  const bgColor = isEcoFriendly
-    ? "rgba(46, 125, 50, 0.1)"
-    : "rgba(198, 40, 40, 0.1)";
-  const borderColor = isEcoFriendly
-    ? "rgba(46, 125, 50, 0.3)"
-    : "rgba(198, 40, 40, 0.3)";
+  const bgColor = isEcoFriendly ? '#e8f3e8' : '#f8e8e8';
+  const borderColor = isEcoFriendly ? 'rgba(46, 125, 50, 0.3)' : 'rgba(198, 40, 40, 0.3)';
 
   const display = document.createElement("div");
   display.style.cssText = `
@@ -1332,7 +1531,7 @@ function createMaterialInfoDisplay(materialInfo, ecoScore) {
         </div>
         <div>
           <div style="font-weight: 600; font-size: 16px; color: ${ecoColor};">${ecoStatus}</div>
-          <div style="font-size: 14px; color: #666;">Eco Score: ${(
+          <div style="font-size: 14px; color: #000;">Eco Score: ${(
             ecoScore * 100
           ).toFixed(0)}%</div>
         </div>
@@ -1392,7 +1591,8 @@ function createMaterialInfoDisplay(materialInfo, ecoScore) {
         <span style="font-size: 14px;">⚠️</span> Contains Plastic
       </span>`;
     }
-    if (hasBiodegradable) {
+    // Only show Biodegradable badge if the product is eco-friendly and has biodegradable materials
+    if (hasBiodegradable && isEcoFriendly) {
       content += `<span style="background: rgba(46, 125, 50, 0.1); color: #2e7d32; padding: 6px 12px; border-radius: 16px; font-size: 12px; display: flex; align-items: center; gap: 4px;">
         <span style="font-size: 14px;">🌱</span> Biodegradable
       </span>`;

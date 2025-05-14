@@ -1,28 +1,31 @@
 /* Content script styles */
 .r3vision-material-display {
   position: absolute;
-  top: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: #333;
-  padding: 16px;
-  border-radius: 12px;
+  top: 10px;
+  right: 10px;
+  background: rgba(186, 246, 186, 0.97); /* Almost solid */
+  backdrop-filter: blur(1px); /* Lower blur */
+  -webkit-backdrop-filter: blur(1px);
+  color: #162c16;
+  padding: 12px;
+  border-radius: 8px;
   font-size: 13px;
   z-index: 1000;
-  width: 300px;
+  width: 280px;
   text-align: left;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(60, 179, 113, 0.4);
   display: none;
   line-height: 1.4;
   transition: all 0.3s ease;
-  max-height: 400px;
+  max-height: 350px;
   overflow-y: auto;
-  transform: translateY(10px);
-  margin: 10px;
+  margin: 0;
+  opacity: 1 !important;
 }
+
+
+
 
 /* Ensure proper positioning on different sites */
 .s-result-item .r3vision-material-display,
@@ -31,20 +34,23 @@
 .jm-col-4 .r3vision-material-display,
 .product-item .r3vision-material-display {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 10px;
+  right: 10px;
   z-index: 1000;
+  max-width: calc(100% - 20px);
 }
 
 /* Adjust for Flipkart's layout */
 ._1AtVbE {
   position: relative !important;
+  overflow: visible !important;
 }
 
 /* Adjust for Jiomart's layout */
 .jm-col-4,
 .product-item {
   position: relative !important;
+  overflow: visible !important;
 }
 
 /* Ensure proper z-index layering */
@@ -62,26 +68,26 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .r3vision-material-display {
-    width: 280px;
-    max-height: 350px;
+    width: 260px;
+    max-height: 320px;
     font-size: 12px;
-    padding: 12px;
+    padding: 10px;
   }
 }
 
 /* Ensure proper scrolling */
 .r3vision-material-display::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .r3vision-material-display::-webkit-scrollbar-track {
   background: #f1f1f1;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 .r3vision-material-display::-webkit-scrollbar-thumb {
   background: #888;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 .r3vision-material-display::-webkit-scrollbar-thumb:hover {
@@ -120,8 +126,8 @@
 }
 
 .r3vision-show-button img {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
 }
 
@@ -142,67 +148,67 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 12px;
-  border-radius: 16px;
+  padding: 4px 10px;
+  border-radius: 12px;
   font-size: 12px;
-  margin-right: 8px;
-  margin-bottom: 8px;
+  margin-right: 6px;
+  margin-bottom: 6px;
 }
 
 .r3vision-badge.plastic {
-  background: rgba(198, 40, 40, 0.1);
+  background: rgba(198, 40, 40, 0.08);
   color: #c62828;
 }
 
 .r3vision-badge.biodegradable {
-  background: rgba(46, 125, 50, 0.1);
+  background: rgba(46, 125, 50, 0.08);
   color: #2e7d32;
 }
 
 .r3vision-badge.recyclable {
-  background: rgba(33, 150, 243, 0.1);
+  background: rgba(33, 150, 243, 0.08);
   color: #1565c0;
 }
 
 /* Progress bars */
 .r3vision-progress-bar {
   width: 100%;
-  height: 6px;
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 3px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 2px;
   overflow: hidden;
   margin-top: 4px;
 }
 
 .r3vision-progress-bar-inner {
   height: 100%;
-  border-radius: 3px;
+  border-radius: 2px;
   transition: width 0.3s ease;
 }
 
 .r3vision-progress-bar-inner.plastic {
-  background: rgba(198, 40, 40, 0.3);
+  background: rgba(198, 40, 40, 0.2);
 }
 
 .r3vision-progress-bar-inner.biodegradable {
-  background: rgba(46, 125, 50, 0.3);
+  background: rgba(46, 125, 50, 0.2);
 }
 
 .r3vision-progress-bar-inner.recyclable {
-  background: rgba(33, 150, 243, 0.3);
+  background: rgba(33, 150, 243, 0.2);
 }
 
 /* Ensure proper display on mobile */
 @media (max-width: 480px) {
   .r3vision-material-display {
-    width: 260px;
-    max-height: 300px;
+    width: 240px;
+    max-height: 280px;
     font-size: 11px;
-    padding: 10px;
+    padding: 8px;
   }
 
   .r3vision-badge {
-    padding: 4px 8px;
+    padding: 3px 8px;
     font-size: 11px;
   }
 
