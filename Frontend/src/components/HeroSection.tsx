@@ -12,6 +12,7 @@ import LoginModal from "./LoginModal";
 import SignupModal from "./SignupModal";
 import { useRouter } from "next/navigation";
 import AnalysisResultModal from "./AnalysisResultModal";
+import EcoLoader from "./EcoLoader";
 
 interface AnalysisResult {
   imageUrl: string;
@@ -65,7 +66,6 @@ const HeroSection = () => {
     null
   );
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
-
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
@@ -158,7 +158,7 @@ const HeroSection = () => {
         canvas.toBlob((blob) => blob && resolve(blob), "image/jpeg");
       });
 
-      // Show the modal with loading state immediately
+      // Show the loader
       setAnalysisResult({
         imageUrl: URL.createObjectURL(blob),
         s3Url: "",
@@ -191,7 +191,6 @@ const HeroSection = () => {
           description: "",
         },
       });
-      setShowAnalysisModal(true);
 
       // Send to Go Server (S3 upload)
       const goFormData = new FormData();
@@ -226,17 +225,20 @@ const HeroSection = () => {
       decrementUploads();
 
       // Update analysis result with actual data
-      setAnalysisResult({
+      const finalResult = {
         imageUrl: URL.createObjectURL(blob),
         s3Url: goData.url,
         predictedClass: flaskData.predicted_class,
         confidence: flaskData.confidence,
         analysis: analysisData.analysis,
-      });
+      };
+
+      // Store the result in localStorage and redirect
+      localStorage.setItem("analysisResult", JSON.stringify(finalResult));
+      router.push("/result");
     } catch (error) {
       console.error("Error processing image:", error);
       alert("Failed to process image. Please try again.");
-      setShowAnalysisModal(false);
     } finally {
       setIsProcessing(false);
     }
@@ -247,9 +249,8 @@ const HeroSection = () => {
     if (!file) return;
 
     try {
-      // Set loading state and show modal first
+      // Set loading state
       setIsProcessing(true);
-      setShowAnalysisModal(true);
 
       // Create a temporary analysis result to show the loader
       setAnalysisResult({
@@ -316,17 +317,20 @@ const HeroSection = () => {
       decrementUploads();
 
       // Update analysis result with actual data
-      setAnalysisResult({
+      const finalResult = {
         imageUrl: URL.createObjectURL(file),
         s3Url: goData.url,
         predictedClass: flaskData.predicted_class,
         confidence: flaskData.confidence,
         analysis: analysisData.analysis,
-      });
+      };
+
+      // Store the result in localStorage and redirect
+      localStorage.setItem("analysisResult", JSON.stringify(finalResult));
+      router.push("/result");
     } catch (error) {
       console.error("Upload error:", error);
       alert("Failed to upload image. Please try again.");
-      setShowAnalysisModal(false);
     } finally {
       setIsProcessing(false);
     }
@@ -684,18 +688,7 @@ const HeroSection = () => {
         }}
       />
 
-      {analysisResult && (
-        <AnalysisResultModal
-          isOpen={showAnalysisModal}
-          onClose={() => setShowAnalysisModal(false)}
-          imageUrl={analysisResult.imageUrl}
-          s3Url={analysisResult.s3Url}
-          predictedClass={analysisResult.predictedClass}
-          confidence={analysisResult.confidence}
-          analysis={analysisResult.analysis}
-          isLoading={isProcessing}
-        />
-      )}
+      {isProcessing && <EcoLoader message="Analyzing your item..." />}
     </div>
   );
 };

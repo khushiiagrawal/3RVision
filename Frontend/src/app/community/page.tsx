@@ -30,11 +30,10 @@ interface Post {
   likes: number;
   comments: Comment[];
   tags: string[];
-  postType?: "text" | "image" | "poll" | "link";
+  postType?: "text" | "image" | "poll";
   pollOptions?: { text: string; votes: number }[];
   totalVotes?: number;
   userVote?: number | null;
-  linkUrl?: string;
 }
 
 const CommunityPage = () => {
@@ -82,8 +81,6 @@ const CommunityPage = () => {
           likes: post.likes || 0,
           comments: Array.isArray(post.comments) ? post.comments : [],
           tags: Array.isArray(post.tags) ? post.tags : [],
-          postType: post.postType || "text",
-          linkUrl: post.linkUrl || "",
         }));
 
         setPosts(transformedPosts);
@@ -140,8 +137,6 @@ const CommunityPage = () => {
         comments: Array.isArray(newPost.comments) ? newPost.comments : [],
         tags: Array.isArray(newPost.tags) ? newPost.tags : postData.tags || [],
         image: newPost.image || postData.image || "",
-        postType: newPost.postType || "text",
-        linkUrl: newPost.linkUrl || "",
       };
 
       console.log("New post created:", formattedPost);

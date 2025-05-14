@@ -3,7 +3,7 @@ import { MongoClient, ObjectId } from "mongodb";
 
 // MongoDB connection function
 async function connectToDatabase() {
-  const uri = process.env.MONGODB_URI ;
+  const uri = process.env.MONGODB_URI || "mongodb+srv://rajnaman488:namanraj24@nextapp-cluster.iikn9.mongodb.net/3RVision?retryWrites=true&w=majority&appName=NextApp-Cluster";
   if (!uri) {
     throw new Error("MONGODB_URI is not defined");
   }
