@@ -52,6 +52,13 @@ type AnalysisResponse struct {
 		Benefits   string   `json:"benefits"`
 		Tutorial   string   `json:"tutorial"`
 	} `json:"reusable"`
+	CarbonFootprint struct {
+		Production    string   `json:"production"`
+		Usage         string   `json:"usage"`
+		Disposal      string   `json:"disposal"`
+		TotalEstimate string   `json:"total_estimate"`
+		ReductionTips []string `json:"reduction_tips"`
+	} `json:"carbon_footprint"`
 	Biodegradable bool   `json:"biodegradable"`
 	TimeToDegrade string `json:"time_to_degrade"`
 	Description   string `json:"description"`
@@ -231,6 +238,19 @@ func handleAnalyze(c *gin.Context) {
 					Benefits:   "Unknown",
 					Tutorial:   "Analysis unavailable",
 				},
+				CarbonFootprint: struct {
+					Production    string   `json:"production"`
+					Usage         string   `json:"usage"`
+					Disposal      string   `json:"disposal"`
+					TotalEstimate string   `json:"total_estimate"`
+					ReductionTips []string `json:"reduction_tips"`
+				}{
+					Production:    "Unknown",
+					Usage:         "Unknown",
+					Disposal:      "Unknown",
+					TotalEstimate: "Unknown",
+					ReductionTips: []string{"Analysis unavailable"},
+				},
 				Biodegradable: false,
 				TimeToDegrade: "Unknown",
 				Description:   "Analysis unavailable",
@@ -317,6 +337,13 @@ Respond with ONLY a JSON object in this exact format:
 		"benefits": "Benefits of reusing this item",
 		"tutorial": "Brief steps for repurposing"
 	},
+	"carbon_footprint": {
+		"production": "Estimated carbon footprint from production",
+		"usage": "Estimated carbon footprint from usage",
+		"disposal": "Estimated carbon footprint from disposal",
+		"total_estimate": "Total carbon footprint estimate",
+		"reduction_tips": ["tip1", "tip2"]
+	},
 	"biodegradable": true/false,
 	"time_to_degrade": "Estimated time to biodegrade",
 	"description": "Comprehensive description of the item and its sustainability aspects"
@@ -338,7 +365,13 @@ Guidelines:
    - Include durability assessment
    - Provide step-by-step repurposing guidance
 
-4. For biodegradable assessment:
+4. For carbon footprint:
+   - Provide realistic estimates for production, usage, and disposal
+   - Express total carbon footprint in kg of CO2 equivalent
+   - Suggest actionable tips to reduce the carbon footprint
+   - Consider the item's entire lifecycle
+
+5. For biodegradable assessment:
    - Base on material composition
    - Include realistic degradation timeframe
    - Explain environmental impact
